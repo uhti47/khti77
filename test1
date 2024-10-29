@@ -1,0 +1,53 @@
+chance   = 0.9
+chancef  = chance
+baseload = 0.8
+minbet   = 8e-8
+baserisk = 1e-8*10
+basebet  = baserisk
+nextbet  = basebet
+
+function dobet()
+    if partialprofit > 0 then
+        resetpartialprofit()
+        nextbet  = basebet 
+    end
+    if win then 
+        nextbet = basebet
+        chance  = chancef
+    else
+        chance  = chance+0.01
+        streak  = math.abs(currentstreak)
+        betload = math.abs(partialprofit)/((99/chance)-1)
+        betrisk = baseload+(streak/100) 
+        nextbet = betload*betrisk
+        info    = string.format("[ %.2f ]",betrisk) .. string.format(" [ %.2f ]",chance) 
+    end
+    
+    nextbet = math.max(nextbet,minbet)
+    manageRisk()
+end
+
+ifpause  = 0
+ifdrop   = 30
+ifprofit = 525
+
+info = ""
+sbal,mbal = balance,balance
+cdrop,mdrop = 0,0
+stwin = false
+stbal = balance+(balance*(ifprofit/100))
+function manageRisk()
+
+    if balance > stbal and stbal > 0 then stop() end
+    if balance > mbal then
+        if stwin then stop() end
+        if currentprofit/sbal*100 > ifpause and ifpause > 0 then pause() end
+        mbal = balance
+    end
+    cdrop = mbal - balance
+    mdrop = math.max(mdrop,cdrop)
+    if cdrop/mbal*100 > ifdrop and ifdrop > 0 then stwin = true end
+    incdrop = string.format("[ %.8f ]", cdrop)
+    inmdrop = string.format("[ %.8f ]", mdrop) .. string.format(" [ %.2f ]", mdrop/mbal*100)
+    print("++ drop " .. incdrop .. "\t" .. inmdrop .. "\t" .. info)
+end
