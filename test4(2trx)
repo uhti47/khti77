@@ -1,0 +1,33 @@
+basebet   = 0.00006 --balance/1e5
+target    = balance+1.00015 --20.040
+chance    = math.random(4500, 6900)/100 
+bethigh   = false  
+rollcount = 6 
+nextbet   = basebet 
+ctprofit  = 0 
+marti     = 1.5
+  
+function dobet()  
+    ctprofit += currentprofit 
+   rollcount += 1 
+   if rollcount%7==0 then resetseed() end 
+   bethigh = false --math.random(2)==1  
+   if ctprofit > basebet then 
+       ctprofit = 0 
+       nextbet  = basebet 
+       marti    = 1.5
+   else 
+       if win then 
+           marti   = 1.5
+           chance  = math.random(3000, 3550)/100  
+           nextbet = previousbet * 1.05
+       else   
+           marti   = marti + 0.001
+           chance  = math.random(1400, 3500)/100   
+           nextbet = previousbet * marti 
+           if nextbet < basebet then nextbet = basebet end 
+       end   
+   end 
+   if balance > target then stop() end 
+   if balance > 470 then stop() end 
+end
