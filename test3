@@ -1,0 +1,21 @@
+nextbet = bb
+bb      = 0.00007
+chance  = 22
+ctlose  = 0
+
+function dobet()
+if win then
+ctlose = 0
+chance = 20
+bethigh = not bethigh
+nextbet = bb
+else
+ctlose = ctlose + 1
+nextbet = previousbet *1.55
+chance = chance +(chance*(1.23/100))
+if ctlose%8==0 then
+chance  = chance-(chance*(11/100))
+nextbet = previousbet *0.85
+end
+end
+end
