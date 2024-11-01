@@ -1,0 +1,120 @@
+playgame = "Dice"      
+minBet   = 0.000062  
+edge     = 100-site.edge  
+tBalance = balance*2     
+cutLose  = balance - 5e6   
+---- settingan max  
+maxBet = 2 
+---- settingan base  
+baseBet = 0.000062 
+basePO  = 1.01 
+baseInc = 1.09 
+ifwin   = 1.02  
+dl      = 1  
+---- settingan random base 
+chRand = {24,26} 
+ 
+---- settingan hunt  
+huntBet  = 0.25  
+huntPO   = {11,5,3.96}   
+huntInc  = {1.11,1.28,1.38}   
+targetPO = {11,5,3.96}   
+streakPO = {65,30,20}  
+dm       = 1  
+  
+--- default  
+modeHunt = false   
+ctPO   = {}  
+lastPO = {}  
+maxPO  = {}  
+for i = 1,#huntPO do  
+  ctPO[i]   = 0  
+  lastPO[i] = 0  
+    maxPO[i]  = 0  
+end  
+num = 0  
+streak = 0  
+chance = edge/basePO  
+nextbet  = baseBet   
+resetstats()     
+resetpartialprofit()     
+resetchart()     
+--resetseed()    
+   
+   
+function dobet()   
+    --bethigh = math.random(30)>7  
+   --if (rumble==21.80) then stop() end  
+   --if (rumble==41.80) then stop() end  
+   --if (rumble==61.80) then stop() end  
+  if(bethigh)then  
+    rumble = edge/(100-rumble)  
+  else  
+    rumble = edge/rumble  
+  end  
+  if (modeHunt)then     
+    if (win) then     
+      print('')     
+      chance  = edge/basePO     
+      nextbet = baseBet     
+      modeHunt = !modeHunt    
+      if (balance >= tBalance)then      
+        stop()     
+      end      
+      for i = 1,#huntPO do   
+        ctPO[i]   = 0  
+      end  
+      streak = 0  
+    else   
+      streak  = streak + 1   
+      if (currentstreak%-dm==0) then  
+        chance = edge/huntPO[num]  
+        lastPO[num] = streak  
+        maxPO[num]  = math.max(maxPO[num],streak)      
+        nextbet = previousbet * huntInc[num]    
+      end    
+    end   
+      print("Hunt\t: "..huntPO[num].."\tmaxPO\t: "..lastPO[num].."\tmaxPO\t: "..maxPO[num])     
+  else   
+    if (win) then    
+      if (partialprofit > 0 ) then  
+        resetpartialprofit()    
+        nextbet = baseBet   
+        chance  = edge/basePO  
+      else  
+        nextbet = previousbet * ifwin  
+      end   
+    else 
+    --bethigh = !bethigh 
+      chance  = math.random(chRand[1]*100,chRand[2]*100)/100      
+      if (currentstreak%-dl==0) then  
+        nextbet = previousbet*baseInc     
+      end        
+    end  
+    for i = 1,#huntPO do  
+      if (rumble < targetPO[i]) then     
+        ctPO[i] = ctPO[i] + 1      
+      if (ctPO[i] == streakPO[i] ) then    
+        chance  = edge/huntPO[i]     
+        nextbet  = huntBet     
+        modeHunt = !modeHunt    
+        num = i    
+        print('')  
+        break  
+      end  
+    else     
+      ctPO[i] = 0     
+    end  
+    print('')      
+    print("Hunt\t: "..huntPO[i].."\tctPO\t: "..ctPO[i].."\tlastPO\t: "..lastPO[i].."\tmaxPO\t: "..maxPO[i])      
+    if(win and nextbet > maxBet) then 
+      nextbet = baseBet  
+     resetpartialprofit()  
+    end 
+  end  
+    nextbet = math.max(nextbet,minBet)  
+    if (balance-nextbet < cutLose )then   
+      stop()   
+    end   
+  end  
+end
