@@ -1,0 +1,113 @@
+function fn_format(_fix, _data, _suffix)  
+    return string.format("%." .. _fix .. "f", _data) .. _suffix .. "\t"  
+end  
+  
+function calc_basebet(_balance, _iflose, _mxstreak)  
+    return _balance / (math.exp(math.log(_iflose) * _mxstreak) / (_iflose - 1))  
+end   
+playZero = true 
+minbet   = 2e-5
+x_c      = 10  
+x_p      = 99/x_c  
+power    = 10.5  
+iflose   = (99 / x_c) / ((99 / x_c) - 1) * 1.2--1.0256  
+mxstreak = math.ceil((99 / x_c) * power)  
+  
+basebet   = calc_basebet(balance, iflose, mxstreak)  
+target    = balance * 1.5  
+ctlose    = 0  
+pausewin  = false  
+breaklose = 40  
+bethigh   = true  
+chance    = 66  
+nextbet   = basebet  
+if(playZero)then
+  if nextbet < minbet then  
+    nextbet = 0 
+    condBet = 'zeroBet'
+  else
+    condBet = 'realBet'
+  end   
+else
+  if nextbet < minbet then  
+    nextbet = minbet 
+    condBet = 'minBet'
+  else
+    condBet = 'realBet'
+  end   
+
+end
+function sleep(seconds)  
+    local start = os.clock()  
+    while os.clock() - start <= seconds do  
+    end  
+end  
+function dobet()  
+    if bets % 250 == 0 then  
+        resetseed()  
+    end  
+    if balance > target then  
+        stop()  
+    end  
+    if win then  
+
+        if pausewin then  
+            sleep(10)  
+            print("istirahat sejenak 10 detik")  
+            breaklose = breaklose + 10  
+            pausewin = false  
+        end  
+        x_c      = math.random(10, 15)  
+        x_p      = 99 / x_c  
+        x_pt     = x_p * x_c  
+        power    = math.random(100,120) / 10  
+        mxstreak = math.ceil((99 / x_c) * power)  
+        iflose   = (99 / x_c) / ((99 / x_c) - 1) *1.0256  
+        basebet  = calc_basebet(balance, iflose, mxstreak)  
+        ctlose   = 0  
+        chance   = 66  
+        nextbet  = basebet  
+    else  
+        ctlose  = ctlose + 1  
+        nextbet = basebet*(iflose^ctlose) 
+        chance  = chance - (chance * (25 / 100))  
+        chance  = math.max(chance,x_c)
+    end  
+    if ctlose > breaklose then  
+        pausewin = true  
+    end  
+    if ctlose > (mxstreak / 2) then  
+        print("mendekati batas losestreak")  
+        sleep(3)  
+    end  
+    print("\n\n")  
+    print("Author : jakerumble ")  
+    print("P-X1")  
+    print("=====================================")  
+    print("- Payout Now \t[ "..string.format("%.2f",x_p).." ]")  
+    print("- Power \t \t[ "..power.." ]")  
+    print("- Losestreak Max  \t[ "..mxstreak.." ]")  
+    print("- Chance  \t[ "..x_c.." ]")  
+    print("- Iflose  \t\t[ "..string.format("%.4f",iflose).."]")  
+    print("=====================================")  
+    print("- basebet  \t[ "..string.format("%.8f",basebet).." "..string.upper(currency).." ]")  
+    print("- nextbet  \t\t[ "..string.format("%.8f",nextbet).." "..string.upper(currency).." ]")  
+  if(playZero)then
+    if nextbet < minbet then  
+      nextbet = 0 
+      condBet = 'zeroBet'
+    else
+      condBet = 'realBet'
+    end   
+  else
+    if nextbet < minbet then  
+      nextbet = minbet 
+      condBet = 'minBet'
+    else
+      condBet = 'realBet'
+    end   
+
+  end
+    print("- condition  \t[ "..condBet.." ]")  
+    print("=====================================")  
+end
