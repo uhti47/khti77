@@ -1,0 +1,88 @@
+playgame = "Limbo"     
+minBet   = 1e-8  
+edge     = 100-site.edge 
+tBalance = balance+2e5    
+cutLose  = balance - 5e6  
+---- settingan base 
+baseBet = 1e-1 
+basePO  = 2.0102  
+baseInc = 2  
+---- settingan hunt 
+huntBet  = 6e-1  
+huntPO   = {125,80,45,15,5}  
+huntInc  = {1.015,1.028,1.03,1.105,1.5}  
+targetPO = {125,80,45,15,5}  
+streakPO = {350,250,150,60,30} 
+ 
+--- default 
+modeHunt = false  
+ctPO   = {} 
+lastPO = {} 
+maxPO  = {} 
+for i = 1,#huntPO do 
+  ctPO[i]   = 0 
+  lastPO[i] = 0 
+    maxPO[i]  = 0 
+end 
+num = 0 
+streak = 0 
+chance = edge/basePO 
+nextbet  = baseBet  
+resetstats()    
+resetpartialprofit()    
+resetchart()    
+--resetseed()   
+lastNum = #huntPO 
+  
+function dobet()   
+  if (modeHunt)then    
+    if (win) then    
+      print('')    
+      chance  = edge/basePO    
+      nextbet = baseBet    
+      modeHunt = !modeHunt   
+      if (balance >= tBalance)then     
+        stop()    
+      end     
+      for i = lastNum,#huntPO do  
+        ctPO[i]   = 0 
+      end 
+      streak = 0 
+    else
+      lastNum = num
+      chance  = edge/huntPO[num] 
+      streak  = streak + 1  
+      lastPO[num] = streak 
+      maxPO[num]  = math.max(maxPO[num],streak)     
+      nextbet = previousbet * huntInc[num]   
+    end    
+      print("Hunt\t: "..huntPO[num].."\tmaxPO\t: "..lastPO[num].."\tmaxPO\t: "..maxPO[num])    
+  else  
+    if (win) then     
+      nextbet = baseBet    
+    else     
+      nextbet = previousbet*baseInc    
+    end  
+    print('')     
+    nextbet = math.max(nextbet,minBet) 
+    if (balance-nextbet < cutLose )then  
+      stop()  
+    end  
+  end
+  for i = 1,#huntPO do 
+    if (rumble < targetPO[i]) then    
+      ctPO[i] = ctPO[i] + 1     
+      if (ctPO[i] >= streakPO[i] ) then   
+        chance  = edge/huntPO[i]    
+        nextbet  = huntBet    
+        modeHunt = true  
+        num = i   
+        print('') 
+        break 
+      end 
+    else    
+      ctPO[i] = 0    
+    end 
+    print("Hunt\t: "..huntPO[i].."\tctPO\t: "..ctPO[i].."\tlastPO\t: "..lastPO[i].."\tmaxPO\t: "..maxPO[i])        
+  end  
+end
